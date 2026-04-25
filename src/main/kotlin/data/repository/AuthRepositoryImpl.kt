@@ -1,22 +1,44 @@
 package org.example.data.repository
 
+import org.example.data.database.UserTable
 import org.example.domain.model.AuthUser
+import org.example.domain.model.User
 import org.example.domain.repository.AuthRepository
 import org.example.security.JwtConfig
+import org.example.security.PasswordHasher
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 class AuthRepositoryImpl : AuthRepository {
 
-    private val users = mapOf(
-        "admin" to "admin123",
-        "user" to "user123",
-        "nobel" to "prize2024"
-    )
+    override suspend fun login(username: String, password: String): AuthUser? = newSuspendedTransaction {
+        val row = UserTable.selectAll().where { UserTable.username eq username }.firstOrNull()
+            ?: return@newSuspendedTransaction null
 
-    override fun login(username: String, password: String): AuthUser? {
-        if (users[username] == password) {
+        val hash = row[UserTable.passwordHash]
+        if (PasswordHasher.verify(password, hash)) {
             val token = JwtConfig.createToken(username)
-            return AuthUser(username = username, token = token)
+            AuthUser(username = username, token = token)
+        } else {
+            null
         }
-        return null
+    }
+
+    override suspend fun findUserIdByUsername(username: String): Int? = newSuspendedTransaction {
+        UserTable.selectAll().where { UserTable.username eq username }
+            .firstOrNull()
+            ?.get(UserTable.id)
+    }
+
+    override suspend fun getUserProfile(username: String): User? = newSuspendedTransaction {
+        UserTable.selectAll().where { UserTable.username eq username }
+            .firstOrNull()
+            ?.let { row ->
+                User(
+                    id = row[UserTable.id],
+                    username = row[UserTable.username],
+                    role = row[UserTable.role]
+                )
+            }
     }
 }

@@ -4,10 +4,9 @@ import org.example.data.repository.AuthRepositoryImpl
 import org.example.data.repository.PrizeRepositoryImpl
 import org.example.domain.usecase.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import org.example.presentation.AuthController
-import org.example.presentation.PrizeController
+import org.example.presentation.prizeRoutes
 
 fun Application.configureRoutes() {
     val authRepository = AuthRepositoryImpl()
@@ -17,25 +16,22 @@ fun Application.configureRoutes() {
     val getPrizesUseCase = GetPrizesUseCase(prizeRepository)
     val getPrizeDetailUseCase = GetPrizeDetailUseCase(prizeRepository)
     val getLaureatesUseCase = GetLaureatesUseCase(prizeRepository)
+    val addFavoritePrizeUseCase = AddFavoritePrizeUseCase(prizeRepository)
+    val removeFavoritePrizeUseCase = RemoveFavoritePrizeUseCase(prizeRepository)
+    val getFavoritePrizesUseCase = GetFavoritePrizesUseCase(prizeRepository)
+    val getUserProfileUseCase = GetUserProfileUseCase(authRepository)
 
     val authController = AuthController(loginUseCase)
-    val prizeController = PrizeController(getPrizesUseCase, getPrizeDetailUseCase, getLaureatesUseCase)
 
     routing {
         post("/auth/login") {
             authController.login(call)
         }
 
-        authenticate("auth-jwt") {
-            get("/prizes") {
-                prizeController.getAllPrizes(call)
-            }
-            get("/prizes/{year}/{category}") {
-                prizeController.getPrizeDetail(call)
-            }
-            get("/prizes/{year}/{category}/laureates") {
-                prizeController.getLaureates(call)
-            }
-        }
+        prizeRoutes(
+            getPrizesUseCase, getPrizeDetailUseCase, getLaureatesUseCase,
+            addFavoritePrizeUseCase, removeFavoritePrizeUseCase,
+            getFavoritePrizesUseCase, getUserProfileUseCase
+        )
     }
 }

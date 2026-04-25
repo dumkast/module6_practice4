@@ -17,26 +17,12 @@ class AuthController(private val loginUseCase: LoginUseCase) {
             val authUser = loginUseCase(request.username, request.password)
 
             if (authUser != null) {
-                call.respond(
-                    HttpStatusCode.OK,
-                    LoginResponse(token = authUser.token, username = authUser.username)
-                )
+                call.respond(HttpStatusCode.OK, LoginResponse(token = authUser.token, username = authUser.username))
             } else {
-                call.respond(
-                    HttpStatusCode.Unauthorized,
-                    ErrorResponse("invalid_credentials", "Неверное имя пользователя или пароль")
-                )
+                call.respond(HttpStatusCode.Unauthorized, ErrorResponse("invalid_credentials", "Invalid username or password"))
             }
-        } catch (e: IllegalArgumentException) {
-            call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorResponse("validation_error", e.message ?: "Ошибка валидации")
-            )
         } catch (e: Exception) {
-            call.respond(
-                HttpStatusCode.InternalServerError,
-                ErrorResponse("server_error", "Внутренняя ошибка сервера")
-            )
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("error", e.message ?: "Unknown error"))
         }
     }
 }
