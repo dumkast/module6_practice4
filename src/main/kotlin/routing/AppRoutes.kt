@@ -13,13 +13,13 @@ fun Application.configureRoutes() {
     val prizeRepository = PrizeRepositoryImpl()
 
     val loginUseCase = LoginUseCase(authRepository)
-    val getPrizesUseCase = GetPrizesUseCase(prizeRepository)
-    val getPrizeDetailUseCase = GetPrizeDetailUseCase(prizeRepository)
-    val getLaureatesUseCase = GetLaureatesUseCase(prizeRepository)
-    val addFavoritePrizeUseCase = AddFavoritePrizeUseCase(prizeRepository)
-    val removeFavoritePrizeUseCase = RemoveFavoritePrizeUseCase(prizeRepository)
-    val getFavoritePrizesUseCase = GetFavoritePrizesUseCase(prizeRepository)
-    val getUserProfileUseCase = GetUserProfileUseCase(authRepository)
+    val getAllPrizesUseCase = GetAllPrizesUseCase(prizeRepository)
+    val getPrizeByYearAndCategoryUseCase = GetPrizeByYearAndCategoryUseCase(prizeRepository)
+    val getLaureatesByPrizeUseCase = GetLaureatesByPrizeUseCase(prizeRepository)
+    val addPrizeToFavoritesUseCase = AddPrizeToFavoritesUseCase(prizeRepository)
+    val removePrizeFromFavoritesUseCase = RemovePrizeFromFavoritesUseCase(prizeRepository)
+    val getUserFavoritesUseCase = GetUserFavoritesUseCase(prizeRepository)
+    val getCurrentUserUseCase = GetCurrentUserUseCase(authRepository)
 
     val authController = AuthController(loginUseCase)
 
@@ -29,9 +29,13 @@ fun Application.configureRoutes() {
         }
 
         prizeRoutes(
-            getPrizesUseCase, getPrizeDetailUseCase, getLaureatesUseCase,
-            addFavoritePrizeUseCase, removeFavoritePrizeUseCase,
-            getFavoritePrizesUseCase, getUserProfileUseCase
+            getAllPrizesUseCase,
+            getPrizeByYearAndCategoryUseCase,
+            getLaureatesByPrizeUseCase,
+            addPrizeToFavoritesUseCase,
+            removePrizeFromFavoritesUseCase,
+            getUserFavoritesUseCase,
+            getCurrentUserUseCase
         )
     }
 }

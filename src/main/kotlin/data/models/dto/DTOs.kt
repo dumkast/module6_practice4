@@ -21,15 +21,6 @@ data class PrizeResponse(
     val year: String,
     val category: String,
     val prizeAmount: Long,
-    val laureatesCount: Int
-)
-
-@Serializable
-data class PrizeDetailResponse(
-    val id: Int,
-    val year: String,
-    val category: String,
-    val prizeAmount: Long,
     val dateAwarded: String,
     val laureates: List<LaureateResponse>
 )
@@ -38,12 +29,12 @@ data class PrizeDetailResponse(
 data class LaureateResponse(
     val id: String,
     val fullName: String,
+    val share: String,
     val motivation: String,
-    val share: String
 )
 
 @Serializable
-data class UserProfileResponse(
+data class UserResponse(
     val id: Int,
     val username: String,
     val role: String

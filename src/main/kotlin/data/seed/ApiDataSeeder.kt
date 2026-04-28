@@ -25,7 +25,8 @@ data class NobelPrizeFromApi(
     val category: CategoryFromApi? = null,
     val prizeAmount: Long? = null,
     val dateAwarded: String? = null,
-    val laureates: List<LaureateFromApi>? = null
+    val laureates: List<LaureateFromApi>? = null,
+    val links: List<LinkFromApi>? = null
 )
 
 @Serializable
@@ -39,7 +40,8 @@ data class LaureateFromApi(
     val fullName: FullNameFromApi? = null,
     val knownName: KnownNameFromApi? = null,
     val motivation: MotivationFromApi? = null,
-    val portion: String? = null
+    val portion: String? = null,
+    val links: List<LinkFromApi>? = null
 )
 
 @Serializable
@@ -55,6 +57,14 @@ data class KnownNameFromApi(
 @Serializable
 data class MotivationFromApi(
     val en: String? = null
+)
+
+@Serializable
+data class LinkFromApi(
+    val rel: String? = null,
+    val href: String? = null,
+    val action: String? = null,
+    val types: String? = null
 )
 
 object ApiDataSeeder {
@@ -94,12 +104,11 @@ object ApiDataSeeder {
                 allPrizes.forEach { prize ->
                     try {
                         val year = prize.awardYear ?: return@forEach
-                        val category = prize.category?.en ?: return@forEach
+                        val prizeCategory = prize.category?.en ?: return@forEach
 
-                        // Insert prize and get its ID
                         val insertedPrize = PrizeTable.insert {
                             it[awardYear] = year
-                            it[PrizeTable.category] = category
+                            it[PrizeTable.category] = prizeCategory
                             it[prizeAmount] = prize.prizeAmount ?: 0L
                             it[dateAwarded] = prize.dateAwarded ?: ""
                         }
@@ -108,11 +117,11 @@ object ApiDataSeeder {
 
                         prize.laureates?.forEach { laureate ->
                             LaureateTable.insert {
-                                it[externalId] = laureate.id ?: ""
-                                it[prizeId] = prizeIdValue
-                                it[fullName] = laureate.fullName?.en ?: laureate.knownName?.en ?: "Unknown"
-                                it[motivation] = laureate.motivation?.en ?: ""
-                                it[share] = laureate.portion ?: ""
+                                it[LaureateTable.externalId] = laureate.id ?: ""
+                                it[LaureateTable.prizeId] = prizeIdValue
+                                it[LaureateTable.fullName] = laureate.fullName?.en ?: laureate.knownName?.en ?: "Unknown"
+                                it[LaureateTable.share] = laureate.portion ?: "1"
+                                it[LaureateTable.motivation] = laureate.motivation?.en ?: ""
                             }
                         }
                     } catch (e: Exception) {

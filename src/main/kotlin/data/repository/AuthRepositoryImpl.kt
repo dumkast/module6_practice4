@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 class AuthRepositoryImpl : AuthRepository {
 
-    override suspend fun login(username: String, password: String): AuthUser? = newSuspendedTransaction {
+    override suspend fun authenticate(username: String, password: String): AuthUser? = newSuspendedTransaction {
         val row = UserTable.selectAll().where { UserTable.username eq username }.firstOrNull()
             ?: return@newSuspendedTransaction null
 
@@ -24,13 +24,7 @@ class AuthRepositoryImpl : AuthRepository {
         }
     }
 
-    override suspend fun findUserIdByUsername(username: String): Int? = newSuspendedTransaction {
-        UserTable.selectAll().where { UserTable.username eq username }
-            .firstOrNull()
-            ?.get(UserTable.id)
-    }
-
-    override suspend fun getUserProfile(username: String): User? = newSuspendedTransaction {
+    override suspend fun getUserByUsername(username: String): User? = newSuspendedTransaction {
         UserTable.selectAll().where { UserTable.username eq username }
             .firstOrNull()
             ?.let { row ->

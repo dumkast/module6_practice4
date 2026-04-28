@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    // Ktor
+    // Ktor 3.1.0
     implementation("io.ktor:ktor-server-core:3.1.0")
     implementation("io.ktor:ktor-server-netty:3.1.0")
     implementation("io.ktor:ktor-server-content-negotiation:3.1.0")
@@ -26,6 +26,10 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:3.1.0")
     implementation("io.ktor:ktor-server-call-logging:3.1.0")
     implementation("io.ktor:ktor-server-status-pages:3.1.0")
+
+    // Ktor Client
+    implementation("io.ktor:ktor-client-core:3.1.0")
+    implementation("io.ktor:ktor-client-cio:3.1.0")
 
     // Exposed + PostgreSQL
     implementation("org.jetbrains.exposed:exposed-core:0.55.0")
@@ -45,9 +49,10 @@ dependencies {
     // Logback
     implementation("ch.qos.logback:logback-classic:1.5.6")
 
-    implementation("io.ktor:ktor-client-core:3.1.0")
-    implementation("io.ktor:ktor-client-cio:3.1.0")
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+
+    implementation("org.jetbrains.exposed:exposed-java-time:0.55.0")
 }
 
 kotlin {

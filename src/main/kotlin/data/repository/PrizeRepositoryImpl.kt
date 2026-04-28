@@ -9,6 +9,7 @@ import org.example.domain.repository.PrizeRepository
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import java.time.LocalDateTime
 
 class PrizeRepositoryImpl : PrizeRepository {
 
@@ -27,15 +28,15 @@ class PrizeRepositoryImpl : PrizeRepository {
                     Laureate(
                         id = it[LaureateTable.externalId],
                         fullName = it[LaureateTable.fullName],
+                        share = it[LaureateTable.share],
                         motivation = it[LaureateTable.motivation],
-                        share = it[LaureateTable.share]
                     )
                 }
             )
         }
     }
 
-    override suspend fun getPrize(year: String, category: String): NobelPrize? = newSuspendedTransaction {
+    override suspend fun findPrize(year: String, category: String): NobelPrize? = newSuspendedTransaction {
         PrizeTable.selectAll().where {
             (PrizeTable.awardYear eq year) and (PrizeTable.category eq category)
         }.firstOrNull()?.let { row ->
@@ -52,15 +53,15 @@ class PrizeRepositoryImpl : PrizeRepository {
                     Laureate(
                         id = it[LaureateTable.externalId],
                         fullName = it[LaureateTable.fullName],
+                        share = it[LaureateTable.share],
                         motivation = it[LaureateTable.motivation],
-                        share = it[LaureateTable.share]
                     )
                 }
             )
         }
     }
 
-    override suspend fun getLaureates(year: String, category: String): List<Laureate> = newSuspendedTransaction {
+    override suspend fun getLaureatesByPrize(year: String, category: String): List<Laureate> = newSuspendedTransaction {
         val prizeRow = PrizeTable.selectAll().where {
             (PrizeTable.awardYear eq year) and (PrizeTable.category eq category)
         }.firstOrNull() ?: return@newSuspendedTransaction emptyList()
@@ -72,22 +73,23 @@ class PrizeRepositoryImpl : PrizeRepository {
             Laureate(
                 id = it[LaureateTable.externalId],
                 fullName = it[LaureateTable.fullName],
+                share = it[LaureateTable.share],
                 motivation = it[LaureateTable.motivation],
-                share = it[LaureateTable.share]
             )
         }
     }
 
-    override suspend fun addFavoritePrize(userId: Int, prizeId: Int) {
+    override suspend fun addToFavorites(userId: Int, prizeId: Int) {
         newSuspendedTransaction {
             UserPrizeTable.insert {
                 it[UserPrizeTable.userId] = userId
                 it[UserPrizeTable.prizeId] = prizeId
+                it[UserPrizeTable.addedAt] = java.time.LocalDateTime.now().toString().replace('T', ' ')
             }
         }
     }
 
-    override suspend fun removeFavoritePrize(userId: Int, prizeId: Int) {
+    override suspend fun removeFromFavorites(userId: Int, prizeId: Int) {
         newSuspendedTransaction {
             UserPrizeTable.deleteWhere {
                 (UserPrizeTable.userId eq userId) and (UserPrizeTable.prizeId eq prizeId)
@@ -95,7 +97,7 @@ class PrizeRepositoryImpl : PrizeRepository {
         }
     }
 
-    override suspend fun getFavoritePrizes(userId: Int): List<NobelPrize> = newSuspendedTransaction {
+    override suspend fun getFavorites(userId: Int): List<NobelPrize> = newSuspendedTransaction {
         (PrizeTable innerJoin UserPrizeTable)
             .selectAll()
             .where { UserPrizeTable.userId eq userId }
@@ -113,8 +115,8 @@ class PrizeRepositoryImpl : PrizeRepository {
                         Laureate(
                             id = it[LaureateTable.externalId],
                             fullName = it[LaureateTable.fullName],
+                            share = it[LaureateTable.share],
                             motivation = it[LaureateTable.motivation],
-                            share = it[LaureateTable.share]
                         )
                     }
                 )

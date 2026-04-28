@@ -3,7 +3,6 @@ package org.example
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.coroutines.runBlocking
 import org.example.data.database.DatabaseFactory
 import org.example.data.seed.ApiDataSeeder
 import org.example.data.seed.UserSeeder

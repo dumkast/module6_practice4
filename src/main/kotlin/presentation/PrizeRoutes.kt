@@ -9,19 +9,19 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Route.prizeRoutes(
-    getPrizesUseCase: GetPrizesUseCase,
-    getPrizeDetailUseCase: GetPrizeDetailUseCase,
-    getLaureatesUseCase: GetLaureatesUseCase,
-    addFavoritePrizeUseCase: AddFavoritePrizeUseCase,
-    removeFavoritePrizeUseCase: RemoveFavoritePrizeUseCase,
-    getFavoritePrizesUseCase: GetFavoritePrizesUseCase,
-    getUserProfileUseCase: GetUserProfileUseCase
+    getAllPrizesUseCase: GetAllPrizesUseCase,
+    getPrizeByYearAndCategoryUseCase: GetPrizeByYearAndCategoryUseCase,
+    getLaureatesByPrizeUseCase: GetLaureatesByPrizeUseCase,
+    addPrizeToFavoritesUseCase: AddPrizeToFavoritesUseCase,
+    removePrizeFromFavoritesUseCase: RemovePrizeFromFavoritesUseCase,
+    getUserFavoritesUseCase: GetUserFavoritesUseCase,
+    getCurrentUserUseCase: GetCurrentUserUseCase
 ) {
     authenticate("auth-jwt") {
         get("/prizes") {
-            val prizes = getPrizesUseCase()
+            val prizes = getAllPrizesUseCase()
             call.respond(prizes.map { prize ->
-                PrizeDetailResponse(
+                PrizeResponse(
                     id = prize.id,
                     year = prize.year,
                     category = prize.category,
@@ -31,8 +31,8 @@ fun Route.prizeRoutes(
                         LaureateResponse(
                             id = laureate.id,
                             fullName = laureate.fullName,
+                            share = laureate.share,
                             motivation = laureate.motivation,
-                            share = laureate.share
                         )
                     }
                 )
@@ -42,9 +42,9 @@ fun Route.prizeRoutes(
         get("/prizes/{year}/{category}") {
             val year = call.parameters["year"]!!
             val category = call.parameters["category"]!!
-            val prize = getPrizeDetailUseCase(year, category)
+            val prize = getPrizeByYearAndCategoryUseCase(year, category)
             if (prize != null) {
-                call.respond(PrizeDetailResponse(
+                call.respond(PrizeResponse(
                     id = prize.id,
                     year = prize.year,
                     category = prize.category,
@@ -54,8 +54,8 @@ fun Route.prizeRoutes(
                         LaureateResponse(
                             id = it.id,
                             fullName = it.fullName,
+                            share = it.share,
                             motivation = it.motivation,
-                            share = it.share
                         )
                     }
                 ))
@@ -67,12 +67,12 @@ fun Route.prizeRoutes(
         get("/prizes/{year}/{category}/laureates") {
             val year = call.parameters["year"]!!
             val category = call.parameters["category"]!!
-            call.respond(getLaureatesUseCase(year, category).map {
+            call.respond(getLaureatesByPrizeUseCase(year, category).map {
                 LaureateResponse(
                     id = it.id,
                     fullName = it.fullName,
+                    share = it.share,
                     motivation = it.motivation,
-                    share = it.share
                 )
             })
         }
@@ -80,9 +80,9 @@ fun Route.prizeRoutes(
         get("/users/me") {
             val principal = call.principal<JWTPrincipal>()!!
             val username = principal.payload.subject!!
-            val user = getUserProfileUseCase(username)
+            val user = getCurrentUserUseCase(username)
             if (user != null) {
-                call.respond(UserProfileResponse(user.id, user.username, user.role))
+                call.respond(UserResponse(user.id, user.username, user.role))
             } else {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse("not_found", "User not found"))
             }
@@ -91,11 +91,11 @@ fun Route.prizeRoutes(
         get("/users/me/prizes") {
             val principal = call.principal<JWTPrincipal>()!!
             val username = principal.payload.subject!!
-            val user = getUserProfileUseCase(username)
+            val user = getCurrentUserUseCase(username)
             if (user != null) {
-                val prizes = getFavoritePrizesUseCase(user.id)
+                val prizes = getUserFavoritesUseCase(user.id)
                 call.respond(prizes.map { prize ->
-                    PrizeDetailResponse(
+                    PrizeResponse(
                         id = prize.id,
                         year = prize.year,
                         category = prize.category,
@@ -105,8 +105,8 @@ fun Route.prizeRoutes(
                             LaureateResponse(
                                 id = laureate.id,
                                 fullName = laureate.fullName,
+                                share = laureate.share,
                                 motivation = laureate.motivation,
-                                share = laureate.share
                             )
                         }
                     )
@@ -119,10 +119,10 @@ fun Route.prizeRoutes(
         post("/users/me/prizes/{prizeId}") {
             val principal = call.principal<JWTPrincipal>()!!
             val username = principal.payload.subject!!
-            val user = getUserProfileUseCase(username)
+            val user = getCurrentUserUseCase(username)
             if (user != null) {
                 val prizeId = call.parameters["prizeId"]!!.toInt()
-                addFavoritePrizeUseCase(user.id, prizeId)
+                addPrizeToFavoritesUseCase(user.id, prizeId)
                 call.respond(HttpStatusCode.Created, mapOf("message" to "Prize added to favorites"))
             } else {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse("not_found", "User not found"))
@@ -132,10 +132,10 @@ fun Route.prizeRoutes(
         delete("/users/me/prizes/{prizeId}") {
             val principal = call.principal<JWTPrincipal>()!!
             val username = principal.payload.subject!!
-            val user = getUserProfileUseCase(username)
+            val user = getCurrentUserUseCase(username)
             if (user != null) {
                 val prizeId = call.parameters["prizeId"]!!.toInt()
-                removeFavoritePrizeUseCase(user.id, prizeId)
+                removePrizeFromFavoritesUseCase(user.id, prizeId)
                 call.respond(mapOf("message" to "Prize removed from favorites"))
             } else {
                 call.respond(HttpStatusCode.NotFound, ErrorResponse("not_found", "User not found"))

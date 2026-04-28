@@ -4,7 +4,6 @@ import org.example.domain.model.AuthUser
 import org.example.domain.model.User
 
 interface AuthRepository {
-    suspend fun login(username: String, password: String): AuthUser?
-    suspend fun findUserIdByUsername(username: String): Int?
-    suspend fun getUserProfile(username: String): User?
+    suspend fun authenticate(username: String, password: String): AuthUser?
+    suspend fun getUserByUsername(username: String): User?
 }
