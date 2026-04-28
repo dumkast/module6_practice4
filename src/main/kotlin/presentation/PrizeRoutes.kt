@@ -41,7 +41,7 @@ fun Route.prizeRoutes(
 
         get("/prizes/{year}/{category}") {
             val year = call.parameters["year"]!!
-            val category = call.parameters["category"]!!
+            val category = call.parameters["category"]!!.replaceFirstChar { it.lowercase() }
             val prize = getPrizeByYearAndCategoryUseCase(year, category)
             if (prize != null) {
                 call.respond(PrizeResponse(
@@ -66,7 +66,7 @@ fun Route.prizeRoutes(
 
         get("/prizes/{year}/{category}/laureates") {
             val year = call.parameters["year"]!!
-            val category = call.parameters["category"]!!
+            val category = call.parameters["category"]!!.replaceFirstChar { it.lowercase() }
             call.respond(getLaureatesByPrizeUseCase(year, category).map {
                 LaureateResponse(
                     id = it.id,

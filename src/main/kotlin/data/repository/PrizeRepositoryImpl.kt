@@ -9,7 +9,6 @@ import org.example.domain.repository.PrizeRepository
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import java.time.LocalDateTime
 
 class PrizeRepositoryImpl : PrizeRepository {
 
@@ -37,8 +36,9 @@ class PrizeRepositoryImpl : PrizeRepository {
     }
 
     override suspend fun findPrize(year: String, category: String): NobelPrize? = newSuspendedTransaction {
+        val normalizedCategory = category.lowercase()
         PrizeTable.selectAll().where {
-            (PrizeTable.awardYear eq year) and (PrizeTable.category eq category)
+            (PrizeTable.awardYear eq year) and (PrizeTable.category.lowerCase() eq normalizedCategory)
         }.firstOrNull()?.let { row ->
             val prizeId = row[PrizeTable.id].value
             NobelPrize(
@@ -62,8 +62,9 @@ class PrizeRepositoryImpl : PrizeRepository {
     }
 
     override suspend fun getLaureatesByPrize(year: String, category: String): List<Laureate> = newSuspendedTransaction {
+        val normalizedCategory = category.lowercase()
         val prizeRow = PrizeTable.selectAll().where {
-            (PrizeTable.awardYear eq year) and (PrizeTable.category eq category)
+            (PrizeTable.awardYear eq year) and (PrizeTable.category.lowerCase() eq normalizedCategory)
         }.firstOrNull() ?: return@newSuspendedTransaction emptyList()
 
         val prizeId = prizeRow[PrizeTable.id].value
